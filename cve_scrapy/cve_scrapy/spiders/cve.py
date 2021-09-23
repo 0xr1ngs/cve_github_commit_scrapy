@@ -51,7 +51,6 @@ class CveSpider(scrapy.Spider):
         commit_url = response.url
         commit_id_new = response.selector.xpath("//span[@class='sha user-select-contain']//text()").extract()[0]
         changed_files = response.selector.xpath("//a[@class='Link--primary']//@title").extract()
-        print(changed_files)
         for file in changed_files:
             pattern = re.compile('(.+/commit).+')
             url_t = re.findall(pattern, commit_url)[0]

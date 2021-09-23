@@ -17,8 +17,8 @@ class CveScrapyPipeline:
         file_name = item['file'].split('/')[-1]
         file_dir = home_path + '/' + item['keyword'] + '/' + item['year'] + '/' + item[
             'cve_name'] + '/'
-        old_file_path = file_dir + file_name.split('.')[0] + '_old' + file_name.split('.')[1]
-        new_file_path = file_dir + file_name.split('.')[0] + '_new' + file_name.split('.')[1]
+        old_file_path = file_dir + file_name.split('.')[0] + '_old.' + file_name.split('.')[1]
+        new_file_path = file_dir + file_name.split('.')[0] + '_new.' + file_name.split('.')[1]
         README_path = file_dir + 'README.txt'
 
         if not os.path.exists(file_dir):
