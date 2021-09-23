@@ -19,4 +19,5 @@ class CveScrapyItem(scrapy.Item):
     file = scrapy.Field()
     old_file_url = scrapy.Field()
     new_file_url = scrapy.Field()
+    repository = scrapy.Field()
 

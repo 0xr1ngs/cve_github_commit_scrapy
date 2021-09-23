@@ -15,13 +15,11 @@ class CveScrapyPipeline:
         # home_path = os.environ['HOME']
         home_path = 'D://tmp'
         file_name = item['file'].split('/')[-1]
-        old_file_path = home_path + '/' + item['keyword'] + '/' + item['year'] + '/' + item[
-            'cve_name'] + '/' + file_name + '.old'
         file_dir = home_path + '/' + item['keyword'] + '/' + item['year'] + '/' + item[
             'cve_name'] + '/'
-        new_file_path = home_path + '/' + item['keyword'] + '/' + item['year'] + '/' + item[
-            'cve_name'] + '/' + file_name + '.new'
-        README_path = home_path + '/' + item['keyword'] + '/' + item['year'] + '/' + item['cve_name'] + '/README.txt'
+        old_file_path = file_dir + file_name.split('.')[0] + '_old' + file_name.split('.')[1]
+        new_file_path = file_dir + file_name.split('.')[0] + '_new' + file_name.split('.')[1]
+        README_path = file_dir + 'README.txt'
 
         if not os.path.exists(file_dir):
             os.makedirs(file_dir)
@@ -37,6 +35,7 @@ class CveScrapyPipeline:
                 f.write(new_file_code.decode('utf-8'))
 
         if not os.path.exists(README_path):
-            README_content = 'file:' + item['file']
-            with open(README_path, "wa") as f:
+            README_content = 'repository:' + item['repository'] + '\n'  +'file:' + item['file'] + '\n'
+            print(README_content)
+            with open(README_path, "w+") as f:
                 f.write(README_content)

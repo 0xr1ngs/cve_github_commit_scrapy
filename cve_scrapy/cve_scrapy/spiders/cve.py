@@ -41,14 +41,17 @@ class CveSpider(scrapy.Spider):
 
             if url != []:
                 url = url[0]
-                yield scrapy.Request(url=url, callback=self.parse_github_commit, meta={'cve_name': response.meta['cve_name']})
+                repository = url[:url.index('/commit')]
+                yield scrapy.Request(url=url, callback=self.parse_github_commit, meta={'cve_name': response.meta['cve_name'],
+                                                                                       'repository': repository})
             else:
                 yield
 
     def parse_github_commit(self, response):
         commit_url = response.url
         commit_id_new = response.selector.xpath("//span[@class='sha user-select-contain']//text()").extract()[0]
-        changed_files = response.selector.xpath("//a[@class='Link--primary']//text()").extract()
+        changed_files = response.selector.xpath("//a[@class='Link--primary']//@title").extract()
+        print(changed_files)
         for file in changed_files:
             pattern = re.compile('(.+/commit).+')
             url_t = re.findall(pattern, commit_url)[0]
@@ -56,25 +59,45 @@ class CveSpider(scrapy.Spider):
             url = url_prefix + commit_id_new + '/' + file
             yield scrapy.Request(url=url, callback=self.parse_old_id, meta={'cve_name': response.meta['cve_name'],
                                                                             'file': file,
-                                                                            'url_prefix': url_prefix})
-
+                                                                            'url_prefix': url_prefix,
+                                                                            'commit_id_new': commit_id_new,
+                                                                            'repository': response.meta['repository']})
 
     def parse_old_id(self, response):
+        commit_id_new = response.meta['commit_id_new']
         urls_t = response.selector.xpath('//a[@class="text-mono f6 btn btn-outline BtnGroup-item"]//@href').extract()
+        # print(urls_t)
         pattern = re.compile('.+/commit/([0-9a-f]+).+')
+
+        '''
+        查找new_commit_id在urls中的位置，此位置的后一位就是old_commit_id
+        '''
+        new_id_index = 0
+        for url in urls_t:
+            commit_id = re.findall(pattern, url)[0]
+            if commit_id == commit_id_new:
+                break
+            new_id_index += 1
+        # print(commit_id_new)
+        # print(new_id_index)
+
         try:
-            commit_id_old = re.findall(pattern, urls_t[1])[0]
+            commit_id_old = re.findall(pattern, urls_t[new_id_index + 1])[0]
+            # print(commit_id_old)
         except:
             return
 
         new_file_url = response.url.replace('github.com', 'raw.githubusercontent.com').replace('commits/', '')
-        old_file_url = (response.meta['url_prefix'] + commit_id_old + '/' + response.meta['file']).replace('github.com', 'raw.githubusercontent.com').replace('commits/', '')
+        old_file_url = (response.meta['url_prefix'] + commit_id_old + '/' + response.meta['file']).replace('github.com',
+                                                                                                           'raw.githubusercontent.com').replace(
+            'commits/', '')
 
-        items= CveScrapyItem()
+        items = CveScrapyItem()
         items['keyword'] = self.keyword
         items['year'] = self.year
         items['cve_name'] = response.meta['cve_name']
         items['file'] = response.meta['file']
         items['old_file_url'] = old_file_url
         items['new_file_url'] = new_file_url
+        items['repository'] = response.meta['repository']
         yield items
