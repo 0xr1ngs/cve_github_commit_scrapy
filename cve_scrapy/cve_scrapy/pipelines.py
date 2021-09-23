@@ -13,7 +13,7 @@ import requests
 class CveScrapyPipeline:
     def process_item(self, item, spider):
         # home_path = os.environ['HOME']
-        home_path = 'D://tmp'
+        home_path = '/tmp'
         file_name = item['file'].split('/')[-1]
         file_dir = home_path + '/' + item['keyword'] + '/' + item['year'] + '/' + item[
             'cve_name'] + '/'
@@ -37,5 +37,10 @@ class CveScrapyPipeline:
         if not os.path.exists(README_path):
             README_content = 'repository:' + item['repository'] + '\n'  +'file:' + item['file'] + '\n'
             print(README_content)
-            with open(README_path, "w+") as f:
+            with open(README_path, "a") as f:
+                f.write(README_content)
+        else:
+            README_content = 'file:' + item['file'] + '\n'
+            print(README_content)
+            with open(README_path, "a") as f:
                 f.write(README_content)
